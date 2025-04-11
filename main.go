@@ -22,7 +22,7 @@ type Peer struct {
 	LoopringID  int64  `json:"loopringId"`
 }
 
-func Init(factory *factory.Factory) *Peers {
+func HelloPeers(factory *factory.Factory) *Peers {
 	peers := &Peers{
 		Factory:   factory,
 		Map:       make(map[string]*Peer),
