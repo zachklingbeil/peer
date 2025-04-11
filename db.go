@@ -35,6 +35,7 @@ func (p *Peers) LoadPeers() error {
 		return fmt.Errorf("error iterating over peer rows: %w", err)
 	}
 	p.Addresses = addresses
+	fmt.Printf("%d peers\n", len(p.Map))
 	return nil
 }
 
