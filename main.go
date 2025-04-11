@@ -38,6 +38,7 @@ func NewPeers(factory *factory.Factory) *Peers {
 		peers.PeerChan <- address
 	}
 
+	go peers.HelloUniverse()
 	return peers
 }
 
@@ -54,6 +55,7 @@ func (p *Peers) NewBlock(addresses []string) {
 			p.PeerChan <- address
 		}
 	}
+	p.Factory.When.Signal()
 }
 
 func (p *Peers) HelloUniverse() {
@@ -61,36 +63,38 @@ func (p *Peers) HelloUniverse() {
 	var batch []*Peer
 
 	for {
-		p.Factory.Rw.RLock()
-		peers := len(p.Addresses)
-		p.Factory.Rw.RUnlock()
+		p.Factory.Mu.Lock()
 
-		if peers == 0 && len(batch) == 0 {
-			break
+		for len(p.Addresses) == 0 {
+			p.saveBatch(&batch)
+			fmt.Println("Hello Universe")
+			p.Factory.When.Wait()
 		}
 
-		if len(batch) >= batchSize || (peers == 0 && len(batch) > 0) {
-			if err := p.SavePeers(batch); err != nil {
-				fmt.Printf("Error saving batch: %v\n", err)
-			}
-			batch = batch[:0]
-		}
+		address := <-p.PeerChan
+		peer := p.Map[address]
+		p.Factory.Mu.Unlock()
+		p.processPeer(peer)
+		batch = append(batch, peer)
+		fmt.Printf("%d %s %s %d\n", len(p.Addresses), peer.ENS, peer.LoopringENS, peer.LoopringID)
 
-		if peers > 0 {
-			address := <-p.PeerChan
-
-			p.Factory.Mu.Lock()
-			peer := p.Map[address]
-			p.Factory.Mu.Unlock()
-
-			p.GetENS(peer, peer.Address)
-			p.GetLoopringENS(peer, peer.Address)
-			p.GetLoopringID(peer, peer.Address)
-			batch = append(batch, peer)
-
-			peers--
-			fmt.Printf("%d %s %s %d\n", peers, peer.ENS, peer.LoopringENS, peer.LoopringID)
+		if len(batch) >= batchSize {
+			p.saveBatch(&batch)
 		}
 	}
-	fmt.Println("Hello Universe")
+}
+
+func (p *Peers) processPeer(peer *Peer) {
+	p.GetENS(peer, peer.Address)
+	p.GetLoopringENS(peer, peer.Address)
+	p.GetLoopringID(peer, peer.Address)
+}
+
+func (p *Peers) saveBatch(batch *[]*Peer) {
+	if len(*batch) > 0 {
+		if err := p.SavePeers(*batch); err != nil {
+			fmt.Printf("Error saving batch: %v\n", err)
+		}
+		*batch = (*batch)[:0]
+	}
 }

@@ -6,7 +6,7 @@ require (
 	github.com/ethereum/go-ethereum v1.15.8
 	github.com/lib/pq v1.10.9
 	github.com/wealdtech/go-ens/v3 v3.6.0
-	github.com/zachklingbeil/factory v1.0.120
+	github.com/zachklingbeil/factory v1.0.123
 )
 
 require (
