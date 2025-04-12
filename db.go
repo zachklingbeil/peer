@@ -36,29 +36,6 @@ func (p *Peers) LoadPeers() error {
 	}
 	p.Addresses = addresses
 	fmt.Printf("%d peers\n", len(p.Map))
-
-	// Store the map in Redis
-	if err := p.storePeersInRedis(); err != nil {
-		return fmt.Errorf("failed to store peers in Redis: %w", err)
-	}
-	return nil
-}
-
-// storePeersInRedis stores the peers map in Redis
-func (p *Peers) storePeersInRedis() error {
-	for address, peer := range p.Map {
-		key := fmt.Sprintf("peer:%s", address)
-		_, err := p.Factory.Db.Redis.HSet(p.Factory.Ctx, key,
-			"address", peer.Address,
-			"ens", peer.ENS,
-			"loopringEns", peer.LoopringENS,
-			"loopringId", peer.LoopringID,
-		).Result()
-		if err != nil {
-			return fmt.Errorf("failed to store peer in Redis (address: %s): %w", address, err)
-		}
-	}
-	fmt.Printf("%d peers stored in Redis\n", len(p.Map))
 	return nil
 }
 
@@ -100,3 +77,25 @@ func (p *Peers) SavePeers(batch []*Peer) error {
 	fmt.Printf("%d peers saved to the database\n", len(batch))
 	return nil
 }
+
+// // Store the map in Redis
+// if err := p.storePeersInRedis(); err != nil {
+// 	return fmt.Errorf("failed to store peers in Redis: %w", err)
+// }
+// // storePeersInRedis stores the peers map in Redis
+// func (p *Peers) storePeersInRedis() error {
+// 	for address, peer := range p.Map {
+// 		key := fmt.Sprintf("peer:%s", address)
+// 		_, err := p.Factory.Db.Redis.HSet(p.Factory.Ctx, key,
+// 			"address", peer.Address,
+// 			"ens", peer.ENS,
+// 			"loopringEns", peer.LoopringENS,
+// 			"loopringId", peer.LoopringID,
+// 		).Result()
+// 		if err != nil {
+// 			return fmt.Errorf("failed to store peer in Redis (address: %s): %w", address, err)
+// 		}
+// 	}
+// 	fmt.Printf("%d peers stored in Redis\n", len(p.Map))
+// 	return nil
+// }
