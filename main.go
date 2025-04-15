@@ -149,3 +149,17 @@ func (p *Peers) GetPeer(key any, value uint) any {
 		return nil
 	}
 }
+
+func (p *Peers) GetAddressByLoopringID(loopringID int64) string {
+	p.Factory.Mu.Lock()
+	defer p.Factory.Mu.Unlock()
+
+	for _, peer := range p.Map {
+		if peer.LoopringID == loopringID {
+			return peer.Address
+		}
+	}
+
+	fmt.Printf("No peer found with LoopringID: %d\n", loopringID)
+	return ""
+}
