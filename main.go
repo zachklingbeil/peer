@@ -63,19 +63,33 @@ func (p *Peers) HelloUniverse() {
 	for {
 		p.Factory.Mu.Lock()
 
+		// Wait until there are addresses to process
 		for len(p.Addresses) == 0 {
-			p.saveBatch(&batch)
+			p.saveBatch(&batch) // Save any remaining batch
 			fmt.Println("Hello Universe")
 			p.Factory.When.Wait()
 		}
 
+		// Process the next address
 		address := <-p.PeerChan
 		peer := p.Map[address]
+
+		// Remove the processed address from p.Addresses
+		for i, addr := range p.Addresses {
+			if addr == address {
+				p.Addresses = append(p.Addresses[:i], p.Addresses[i+1:]...)
+				break
+			}
+		}
+
 		p.Factory.Mu.Unlock()
+
+		// Process the peer and add it to the batch
 		p.processPeer(peer)
 		batch = append(batch, peer)
 		fmt.Printf("%d %s %s %d\n", len(p.Addresses), peer.ENS, peer.LoopringENS, peer.LoopringID)
 
+		// Save the batch if it reaches the batch size
 		if len(batch) >= batchSize {
 			p.saveBatch(&batch)
 		}
