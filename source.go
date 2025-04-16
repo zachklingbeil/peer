@@ -54,16 +54,24 @@ func (p *Peers) GetLoopringENS(peer *Peer, address string) {
 
 // hex -> LoopringId or -1
 func (p *Peers) GetLoopringID(peer *Peer, address string) {
+	const maxRetries = 3
 	url := fmt.Sprintf("https://api3.loopring.io/api/v3/account?owner=%s", address)
-	var response struct {
-		ID int64 `json:"accountId"`
-	}
-	data, err := p.Factory.Json.In(url, "")
-	if err != nil || json.Unmarshal(data, &response) != nil || response.ID == 0 {
-		peer.LoopringID = -1
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		var response struct {
+			ID int64 `json:"accountId"`
+		}
+
+		data, err := p.Factory.Json.In(url, "")
+		if err != nil || json.Unmarshal(data, &response) != nil || response.ID == 0 {
+			fmt.Printf("Attempt %d: Failed to fetch LoopringID for address %s (error: %v)\n", attempt, address, err)
+			continue
+		}
+		peer.LoopringID = response.ID
 		return
 	}
-	peer.LoopringID = response.ID
+	fmt.Printf("Failed to fetch LoopringID for address %s after %d attempts\n", address, maxRetries)
+	peer.LoopringID = -1
 }
 
 // LoopringId -> hex
