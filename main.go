@@ -75,7 +75,7 @@ func (p *Peers) HelloUniverse() {
 		batch = append(batch, peer)
 		fmt.Printf("%d %s %s %d\n", len(p.PeerChan), peer.ENS, peer.LoopringENS, peer.LoopringID)
 
-		if len(batch) >= batchSize {
+		if len(batch) >= batchSize || len(p.PeerChan) == 0 {
 			p.saveBatch(&batch)
 		}
 	}
