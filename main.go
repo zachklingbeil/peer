@@ -33,7 +33,7 @@ func HelloPeers(factory *factory.Factory) *Peers {
 		fmt.Printf("Error loading peers: %v\n", err)
 	}
 
-	peers.PeerChan = make(chan string, len(peers.Addresses))
+	peers.PeerChan = make(chan string, 1000)
 	for _, address := range peers.Addresses {
 		peers.PeerChan <- address
 	}
