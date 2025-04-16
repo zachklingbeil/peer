@@ -68,18 +68,16 @@ func (p *Peers) HelloUniverse() {
 
 		for len(p.Addresses) == 0 {
 			p.saveBatch(&batch)
-			fmt.Println("Hello Universe: Waiting for new peers...")
+			fmt.Println("Hello Universe")
 			p.Factory.When.Wait()
-			fmt.Println("Hello Universe: Signal received, processing peers...")
 		}
 
 		address := <-p.PeerChan
 		peer := p.Map[address]
 		p.Factory.Mu.Unlock()
-
 		p.processPeer(peer)
 		batch = append(batch, peer)
-		fmt.Printf("Processed peer: %s, Remaining addresses: %d\n", address, len(p.Addresses))
+		fmt.Printf("%d %s %s %d\n", len(p.Addresses), peer.ENS, peer.LoopringENS, peer.LoopringID)
 
 		if len(batch) >= batchSize {
 			p.saveBatch(&batch)
