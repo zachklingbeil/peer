@@ -44,8 +44,6 @@ func (p *Peers) NewBlock(addresses []string) {
 	p.Factory.Mu.Lock()
 	defer p.Factory.Mu.Unlock()
 
-	fmt.Printf("Adding %d new peers\n", len(addresses))
-
 	for _, address := range addresses {
 		if _, exists := p.Map[address]; !exists {
 			p.Map[address] = &Peer{Address: address}
@@ -54,8 +52,6 @@ func (p *Peers) NewBlock(addresses []string) {
 			fmt.Printf("Added peer: %s\n", address)
 		}
 	}
-	fmt.Printf("Total peers in Addresses: %d\n", len(p.Addresses))
-	fmt.Println("Signal sent to process peers")
 	p.Factory.When.Signal()
 }
 
@@ -77,7 +73,7 @@ func (p *Peers) HelloUniverse() {
 		p.Factory.Mu.Unlock()
 		p.processPeer(peer)
 		batch = append(batch, peer)
-		fmt.Printf("%d %s %s %d\n", len(p.Addresses), peer.ENS, peer.LoopringENS, peer.LoopringID)
+		fmt.Printf("%d %s %s %d\n", len(p.PeerChan), peer.ENS, peer.LoopringENS, peer.LoopringID)
 
 		if len(batch) >= batchSize {
 			p.saveBatch(&batch)
