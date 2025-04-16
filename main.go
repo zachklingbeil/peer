@@ -44,15 +44,17 @@ func (p *Peers) NewBlock(addresses []string) {
 	p.Factory.Mu.Lock()
 	defer p.Factory.Mu.Unlock()
 
-	fmt.Printf("%d new peers\n", len(addresses))
+	fmt.Printf("Adding %d new peers\n", len(addresses))
 
 	for _, address := range addresses {
 		if _, exists := p.Map[address]; !exists {
 			p.Map[address] = &Peer{Address: address}
 			p.Addresses = append(p.Addresses, address)
 			p.PeerChan <- address
+			fmt.Printf("Added peer: %s\n", address)
 		}
 	}
+	fmt.Println("Signal sent to process peers")
 	p.Factory.When.Signal()
 }
 
@@ -63,33 +65,19 @@ func (p *Peers) HelloUniverse() {
 	for {
 		p.Factory.Mu.Lock()
 
-		// Wait until there are addresses to process
 		for len(p.Addresses) == 0 {
-			p.saveBatch(&batch) // Save any remaining batch
+			p.saveBatch(&batch)
 			fmt.Println("Hello Universe")
 			p.Factory.When.Wait()
 		}
 
-		// Process the next address
 		address := <-p.PeerChan
 		peer := p.Map[address]
-
-		// Remove the processed address from p.Addresses
-		for i, addr := range p.Addresses {
-			if addr == address {
-				p.Addresses = append(p.Addresses[:i], p.Addresses[i+1:]...)
-				break
-			}
-		}
-
 		p.Factory.Mu.Unlock()
-
-		// Process the peer and add it to the batch
 		p.processPeer(peer)
 		batch = append(batch, peer)
 		fmt.Printf("%d %s %s %d\n", len(p.Addresses), peer.ENS, peer.LoopringENS, peer.LoopringID)
 
-		// Save the batch if it reaches the batch size
 		if len(batch) >= batchSize {
 			p.saveBatch(&batch)
 		}
