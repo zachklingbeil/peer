@@ -62,14 +62,30 @@ func (p *Peers) GetLoopringID(peer *Peer, address string) {
 			ID int64 `json:"accountId"`
 		}
 
+		// Validate the address format before making the request
+		if !common.IsHexAddress(address) {
+			fmt.Printf("Invalid address format: %s\n", address)
+			peer.LoopringID = -1
+			return
+		}
+
 		data, err := p.Factory.Json.In(url, p.LoopringApiKey)
-		if err != nil || json.Unmarshal(data, &response) != nil || response.ID == 0 {
+		if err != nil {
 			fmt.Printf("Attempt %d: Failed to fetch LoopringID for address %s (error: %v)\n", attempt, address, err)
 			continue
 		}
+
+		// Check for unexpected status codes or empty responses
+		if json.Unmarshal(data, &response) != nil || response.ID == 0 {
+			fmt.Printf("Attempt %d: Unexpected response for address %s: %s\n", attempt, address, string(data))
+			continue
+		}
+
 		peer.LoopringID = response.ID
 		return
 	}
+
+	// If all retries fail, assign -1 and log the failure
 	fmt.Printf("Failed to fetch LoopringID for address %s after %d attempts\n", address, maxRetries)
 	peer.LoopringID = -1
 }
