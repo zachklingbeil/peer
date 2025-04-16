@@ -2,6 +2,7 @@ package peer
 
 import (
 	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
 
@@ -9,10 +10,11 @@ import (
 )
 
 type Peers struct {
-	Factory   *factory.Factory
-	Map       map[string]*Peer
-	Addresses []string
-	PeerChan  chan string
+	Factory        *factory.Factory
+	Map            map[string]*Peer
+	Addresses      []string
+	PeerChan       chan string
+	LoopringApiKey string
 }
 
 type Peer struct {
@@ -24,9 +26,10 @@ type Peer struct {
 
 func HelloPeers(factory *factory.Factory) *Peers {
 	peers := &Peers{
-		Factory:   factory,
-		Map:       make(map[string]*Peer),
-		Addresses: nil,
+		Factory:        factory,
+		Map:            make(map[string]*Peer),
+		Addresses:      nil,
+		LoopringApiKey: os.Getenv("LOOPRING_API_KEY"),
 	}
 
 	if err := peers.LoadPeers(); err != nil {

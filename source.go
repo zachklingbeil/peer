@@ -44,7 +44,7 @@ func (p *Peers) GetLoopringENS(peer *Peer, address string) {
 	var response struct {
 		Loopring string `json:"data"`
 	}
-	data, err := p.Factory.Json.In(url, "")
+	data, err := p.Factory.Json.In(url, p.LoopringApiKey)
 	if err != nil || json.Unmarshal(data, &response) != nil || response.Loopring == "" {
 		peer.LoopringENS = "."
 		return
@@ -62,7 +62,7 @@ func (p *Peers) GetLoopringID(peer *Peer, address string) {
 			ID int64 `json:"accountId"`
 		}
 
-		data, err := p.Factory.Json.In(url, "")
+		data, err := p.Factory.Json.In(url, p.LoopringApiKey)
 		if err != nil || json.Unmarshal(data, &response) != nil || response.ID == 0 {
 			fmt.Printf("Attempt %d: Failed to fetch LoopringID for address %s (error: %v)\n", attempt, address, err)
 			continue
@@ -84,7 +84,7 @@ func (p *Peers) GetLoopringAddress(peer *Peer, id string) {
 	var response struct {
 		Address string `json:"owner"`
 	}
-	if data, err := p.Factory.Json.In(url, ""); err == nil && json.Unmarshal(data, &response) == nil {
+	if data, err := p.Factory.Json.In(url, p.LoopringApiKey); err == nil && json.Unmarshal(data, &response) == nil {
 		peer.Address = p.Format(response.Address)
 	} else {
 		peer.Address = "!"
