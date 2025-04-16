@@ -37,8 +37,6 @@ func HelloPeers(factory *factory.Factory) *Peers {
 	for _, address := range peers.Addresses {
 		peers.PeerChan <- address
 	}
-
-	go peers.HelloUniverse()
 	return peers
 }
 
